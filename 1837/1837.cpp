@@ -15,16 +15,21 @@
 
 using namespace std;
 
-struct grafNode
+struct personI
 {
 	string name;
 	int iNumber;
 };
 
+string sGuru = "Isenbaev";
+
 vector<string> input_names;
 vector<string> names;
 vector<vector<string>> teams;
-vector<vector<grafNode>> graf;
+vector<vector<int>> graf;
+vector<personI> personsIsinbaev;
+
+void CheckRelationships(int index, int numberI);
 
 int main() {
     
@@ -52,21 +57,38 @@ int main() {
         input_names.push_back(recent);
 		peopleCount++;
     }
-
-	for (string s : names)
-	{
-			
-	}
     
+    names.push_back(sGuru);
     for(string s : input_names)
     {
-        if(s != "Isenbaev" && find(names.begin(), names.end(), s) == names.end())
+        if(find(names.begin(), names.end(), s) == names.end())
         {
             names.push_back(s);
         }
     }
     
-    for(string s : names)
+    for (int y = 0; y < names.size(); y++ )
+    {
+        graf.push_back(vector<int>(names.size(), -1));
+    }
+    
+    CheckRelationships(0, 0);
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    /////////это дебаг////////
+    /*for(string s : names)
     {
         cout << s << " ";
     }
@@ -78,15 +100,56 @@ int main() {
 		for(string s : v)
 			cout << s << " ";
 		cout << "\n";
-	}
-
-	cout << "\n\n";
-
-    if(names.empty())
+	}*/
+    
+    for (personI p : personsIsinbaev)
     {
-        cout << "Empty\n";
+        cout << p.name << " " << p.iNumber << "\n";
     }
     
+    for(vector<int> y : graf)
+    {
+        for (int x : y)
+        {
+            cout << x;
+        }
+        cout << "\n";
+    }
+
+	cout << "\n\n";
+    ///////////это дебаг///////
     
     return 0;
+}
+
+void CheckRelationships(int index, int numberI)
+{
+    numberI++;
+    string pivotName = names[index];
+    string name;
+    for(int i = 0; i < names.size(); i++)
+    {
+        if(i != index )
+        {
+            name = names[i];
+        }
+        for(vector<string> v : teams)
+        {
+            for(string n : v)
+            {
+                if(n == name)
+                {
+                    for(string p : v)
+                    {
+                        if(p == pivotName && graf[index][i] < 0)
+                        {
+                            graf[index][i] = numberI;
+                            personsIsinbaev.push_back({name, numberI});
+                            CheckRelationships(i, numberI);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
