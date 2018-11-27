@@ -38,12 +38,14 @@ int main() {
     //freopen("output.txt", "wt", stdout);
 #endif
     
+	bool haveGuru = true;
+
     int n;
-    cin >> n;
+    cin >> n;	
 
 	for (int i = 0; i < n; i++)
 	{
-		teams.push_back(vector<string>(3));
+		teams.push_back(vector<string>());
 	}
     
     string recent;
@@ -58,7 +60,16 @@ int main() {
 		peopleCount++;
     }
     
-    names.push_back(sGuru);
+	if (find(input_names.begin(), input_names.end(), sGuru) != input_names.end())
+	{
+		names.push_back(sGuru);		
+	}
+	else
+	{
+		haveGuru = false;
+	}
+		
+
     for(string s : input_names)
     {
         if(find(names.begin(), names.end(), s) == names.end())
@@ -71,53 +82,63 @@ int main() {
     {
         graf.push_back(vector<int>(names.size(), -1));
     }
+	if (haveGuru)
+	{
+		for (int x = 0; x < names.size(); x++)
+		{
+			graf[x][0] = 0;
+		}
+	}
+		
     
-    CheckRelationships(0, 0);
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+	if(haveGuru)
+		CheckRelationships(0, 0);
+
+
+	///доработка после основного алгоритма, для корректного вывода
+	if (haveGuru)
+	{
+		personsIsinbaev.push_back({ sGuru, 0 });
+	}
+	
+
+	for (int x = 0; x < names.size(); x++)
+	{
+		if (graf[0][x] == -1)
+		{
+			string un = names[x];
+			personsIsinbaev.push_back({un, -1});
+		}
+	}
+
+	 for(int i = 0; i < personsIsinbaev.size() - 1; i++)
+		 for (int j = 0; j < personsIsinbaev.size() - i - 1; j++)
+		 {
+			 if (personsIsinbaev[j].name > personsIsinbaev[j + 1].name)
+			 {
+				 personI temp = personsIsinbaev[j];
+				 personsIsinbaev[j] = personsIsinbaev[j + 1];
+				 personsIsinbaev[j + 1] = temp;
+			 }
+		 }
     
     /////////это дебаг////////
-    /*for(string s : names)
-    {
-        cout << s << " ";
-    }
-
-	cout << "\n\n";
-    
-	for (vector<string> v : teams)
-	{
-		for(string s : v)
-			cout << s << " ";
-		cout << "\n";
-	}*/
-    
-    for (personI p : personsIsinbaev)
-    {
-        cout << p.name << " " << p.iNumber << "\n";
-    }
-    
-    for(vector<int> y : graf)
-    {
-        for (int x : y)
-        {
-            cout << x;
-        }
-        cout << "\n";
-    }
-
-	cout << "\n\n";
+   
     ///////////это дебаг///////
+
+	for (personI p : personsIsinbaev)
+	{
+		cout << p.name << " ";
+		if (p.iNumber != -1)
+		{
+			cout << p.iNumber;
+		}
+		else
+		{
+			cout << "undefined";
+		}
+		cout << endl;
+	}	
     
     return 0;
 }
@@ -127,29 +148,42 @@ void CheckRelationships(int index, int numberI)
     numberI++;
     string pivotName = names[index];
     string name;
-    for(int i = 0; i < names.size(); i++)
-    {
-        if(i != index )
-        {
-            name = names[i];
-        }
-        for(vector<string> v : teams)
-        {
-            for(string n : v)
-            {
-                if(n == name)
-                {
-                    for(string p : v)
-                    {
-                        if(p == pivotName && graf[index][i] < 0)
-                        {
-                            graf[index][i] = numberI;
-                            personsIsinbaev.push_back({name, numberI});
-                            CheckRelationships(i, numberI);
-                        }
-                    }
-                }
-            }
-        }
-    }
+	vector<string> coops;
+
+	for (vector<string> v : teams)
+	{
+		if (find(v.begin(), v.end(), pivotName) != v.end())
+		{
+			for (string n : v)
+			{
+				int indexN = distance(names.begin(), find(names.begin(), names.end(), n));
+				if (n != pivotName && find(coops.begin(), coops.end(), n) == coops.end() && graf[index][indexN]== -1)
+				{
+					coops.push_back(n);
+					personsIsinbaev.push_back({n, numberI});
+					for (int y = 0; y < names.size(); y++)
+					{
+						graf[y][indexN] = numberI;
+					}
+					
+				}
+			}
+		}
+	}	
+
+	if (!coops.empty())
+	{
+		for (string n : coops)
+		{
+			int ind = 0;
+			for (string s : names)
+			{
+				if (s == n)
+					break;
+				ind++;
+			}
+			CheckRelationships(ind, numberI);
+		}
+	}   
+	
 }
