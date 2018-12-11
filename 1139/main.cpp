@@ -5,15 +5,10 @@
 //  Created by Андрей Макухин on 07.12.2018.
 //  Copyright © 2018 Андрей Макухин. All rights reserved.
 //
-
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 
 using namespace std;
-
-int n, m;
-int koef_dot_n;
-
-double koef;
 
 int main() {
 #ifndef ONLINE_JUDGE
@@ -21,46 +16,35 @@ int main() {
     //freopen("output.txt", "wt", stdout);
 #endif
     
-    int result = 0;
+	int result = 0;
+	
+	int n, m;
+    
     cin >> n >> m;
     
     if (m > n)
-        std::swap(m,n);
+        std::swap(m,n);	
+	    
+    int offsetY = 0;
     
-    koef = (double)m / n;
-    int offsetY = 1;
-    
-    for(int x = 1; x < n; x++)
+    for(int x = 0; x < n - 1 ; x++)
     {
-        if(x * koef < (double)offsetY)
+        if((m - 1) * x / (double)(n - 1) == offsetY)
         {
-            result++;
-        }
-        else if (x * koef == offsetY)
+            result += 1;
+			offsetY++;			
+        }        
+        else if ((m - 1)  * x / (double)(n - 1) > offsetY)
         {
             offsetY += 1;
-            result++;
+            result += 2;			
         }
-        else
-        {
-            offsetY += 1;
-            result += 2;
-        }
+		else if ((m - 1) * x / (double)(n - 1) < offsetY)
+		{			
+			result++;			
+		}
     }
-    
-    
-    
-    for(int y = 0; y < m - 1; y++)
-    {
-        for(int x = 0; x < n - 1 ; x++)
-        {
-            {
-                cout << "-";
-            }
-        }
-        cout << endl;
-    }
-    
+
     cout << result;
     
     return 0;
