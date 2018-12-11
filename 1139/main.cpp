@@ -11,9 +11,9 @@
 using namespace std;
 
 int n, m;
-double koef;
+int koef_dot_n;
 
-bool Cover(int min, int max, int minY, int maxY);
+double koef;
 
 int main() {
 #ifndef ONLINE_JUDGE
@@ -24,18 +24,36 @@ int main() {
     int result = 0;
     cin >> n >> m;
     
-    koef = (double)(m - 1) / (double)(n - 1);
+    if (m > n)
+        std::swap(m,n);
+    
+    koef = (double)m / n;
+    int offsetY = 1;
+    
+    for(int x = 1; x < n; x++)
+    {
+        if(x * koef < (double)offsetY)
+        {
+            result++;
+        }
+        else if (x * koef == offsetY)
+        {
+            offsetY += 1;
+            result++;
+        }
+        else
+        {
+            offsetY += 1;
+            result += 2;
+        }
+    }
+    
+    
     
     for(int y = 0; y < m - 1; y++)
     {
         for(int x = 0; x < n - 1 ; x++)
         {
-            if(Cover(x, x + 1, y, y + 1))
-            {
-                cout << '#';
-                result++;
-            }
-            else
             {
                 cout << "-";
             }
@@ -48,12 +66,3 @@ int main() {
     return 0;
 }
 
-bool Cover(int minX, int maxX, int minY, int maxY)
-{
-    double funcIn = (minX) * koef;
-    double funcOut = (maxX) * koef;
-    if(funcIn == maxY || funcOut == minY)
-        return false;
-    return (funcIn >= minY && funcIn <= maxY) || (funcOut >= minY && funcOut <= maxY ) ||
-    (funcIn <= minY && funcOut >= maxY);
-}
