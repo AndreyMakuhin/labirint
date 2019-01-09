@@ -6,6 +6,8 @@
 //  Copyright © 2018 Андрей Макухин. All rights reserved.
 //
 
+#pragma comment(linker, "/STACK:67108864")
+
 #include <iostream>
 #include <vector>
 #include <queue>
@@ -16,6 +18,7 @@ struct cell
 {
     int x;
     int y;
+    int air;
 };
 
 
@@ -24,7 +27,7 @@ int height;
 int dist;
 bool hasEscape = false;
 
-cell upexit{-1, -1};
+cell upexit{-1, -1, -1};
 
 vector<char> map;
 queue<cell> myQ;
@@ -53,16 +56,22 @@ int main() {
         map.push_back(inp);
     }
     
-    FindExit({x,y});
-    Flood();
-    Escape({x,y});
-    
+    FindExit({x, y, dist});
     map[(height - y) * width + x - 1] = 'i';
     map[(height - upexit.y) * width + upexit.x - 1] = 'v';
     
+    Flood();
+    
+    Escape({x,y, dist});
+    
+
+    
+    //map[(height - y) * width + x - 1] = 'i';
+    //map[(height - upexit.y) * width + upexit.x - 1] = 'v';
+    
     
     ///////дебажный вывод
-            printf("%d %d %d %d %d\n", width, height, x, y, dist);
+            /*printf("%d %d %d %d %d\n", width, height, x, y, dist);
     
             for(int i = 0; i < width*height; i++)
             {
@@ -73,7 +82,7 @@ int main() {
                 }
             }
             cout << "\n";
-    
+    */
     ////////////
     
     if(hasEscape)
@@ -88,16 +97,16 @@ void FindExit(cell start)
 {
     if(start.y > height )
     {
-        upexit = {start.x, start.y - 1};
+        upexit = {start.x, start.y - 1, dist};
     }
     
     if(map[(height - start.y) * width + start.x - 1] == '.' )
     {
         map[(height - start.y) * width + start.x - 1] = '-';
-        FindExit({start.x + 1, start.y});
-        FindExit({start.x - 1, start.y});
-        FindExit({start.x, start.y + 1});
-        FindExit({start.x, start.y - 1});
+        FindExit({start.x + 1, start.y, -1});
+        FindExit({start.x - 1, start.y, -1});
+        FindExit({start.x, start.y + 1, -1});
+        FindExit({start.x, start.y - 1, -1});
     }
 }
 
@@ -115,9 +124,9 @@ void Flood()
         {
             map[(height - recent.y) * width + recent.x - 1] = 'o';
             
-            myQ.push({recent.x, recent.y - 1});
-            myQ.push({recent.x - 1, recent.y});
-            myQ.push({recent.x + 1, recent.y});
+            myQ.push({recent.x, recent.y - 1, -1});
+            myQ.push({recent.x - 1, recent.y, -1});
+            myQ.push({recent.x + 1, recent.y, -1});
         }
         
         myQ.pop();
@@ -128,12 +137,14 @@ void Escape(cell start)
 {
     if(!hasEscape)
     {
-        int  d = dist;
         myQ.push(start);
         
-        while(!myQ.empty())
+        while(!myQ.empty() && !hasEscape)
         {
             cell recent = myQ.front();
+            
+            //printf("%d %d\n", recent.x, recent.y);
+            
             if(recent.y > height)
             {
                 hasEscape = true;
@@ -144,18 +155,20 @@ void Escape(cell start)
             {
                 map[(height - recent.y) * width + recent.x - 1] = 'x';
                 CleanMap();
+                recent.air = dist;
                 Escape(recent);
+                break;
             }
             if((map[(height - recent.y) * width + recent.x - 1] == 'o' ||
-                map[(height - recent.y) * width + recent.x - 1] == 'x') && d > 0
+                map[(height - recent.y) * width + recent.x - 1] == 'x') && recent.air > 0
                && !hasEscape)
             {
-                map[(height - recent.y) * width + recent.x - 1] = 'z';
-                d--;
-                myQ.push({recent.x, recent.y - 1});
-                myQ.push({recent.x, recent.y + 1});
-                myQ.push({recent.x + 1, recent.y});
-                myQ.push({recent.x - 1, recent.y});
+                if(map[(height - recent.y) * width + recent.x - 1] != 'x')
+                    map[(height - recent.y) * width + recent.x - 1] = 'z';
+                myQ.push({recent.x, recent.y - 1, recent.air - 1});
+                myQ.push({recent.x, recent.y + 1, recent.air - 1});
+                myQ.push({recent.x + 1, recent.y, recent.air - 1});
+                myQ.push({recent.x - 1, recent.y, recent.air - 1});
             }
             myQ.pop();
         }
@@ -174,7 +187,8 @@ void CleanMap()
                map[i] = 'o';
            }
     }
-    while(!myQ.empty())
+    
+    while(myQ.size() > 0)
     {
         myQ.pop();
     }
