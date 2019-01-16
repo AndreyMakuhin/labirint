@@ -57,18 +57,10 @@ int main() {
     }
     
     FindExit({x, y, dist});
-    map[(height - y) * width + x - 1] = 'i';
-    map[(height - upexit.y) * width + upexit.x - 1] = 'v';
-    
     Flood();
-    
-    Escape({x,y, dist});
-    
-
     
     //map[(height - y) * width + x - 1] = 'i';
     //map[(height - upexit.y) * width + upexit.x - 1] = 'v';
-    
     
     ///////дебажный вывод
             /*printf("%d %d %d %d %d\n", width, height, x, y, dist);
@@ -84,6 +76,8 @@ int main() {
             cout << "\n";
     */
     ////////////
+    
+    Escape({x,y, dist});
     
     if(hasEscape)
         cout << "Can be rescued by himself\n";
@@ -118,8 +112,6 @@ void Flood()
     {
         cell recent = myQ.front();
         if(map[(height - recent.y) * width + recent.x - 1] == '-' ||
-           map[(height - recent.y) * width + recent.x - 1] == 'v' ||
-           map[(height - recent.y) * width + recent.x - 1] == 'i' ||
            map[(height - recent.y) * width + recent.x - 1] == '.')
         {
             map[(height - recent.y) * width + recent.x - 1] = 'o';
@@ -143,8 +135,6 @@ void Escape(cell start)
         {
             cell recent = myQ.front();
             
-            //printf("%d %d\n", recent.x, recent.y);
-            
             if(recent.y > height)
             {
                 hasEscape = true;
@@ -153,18 +143,17 @@ void Escape(cell start)
             if((map[(height - recent.y) * width + recent.x - 1] == '-' ||
                map[(height - recent.y) * width + recent.x - 1] == '.') && !hasEscape)
             {
-                map[(height - recent.y) * width + recent.x - 1] = 'x';
+                map[(height - recent.y) * width + recent.x - 1] = 'z';
                 CleanMap();
                 recent.air = dist;
                 Escape(recent);
                 break;
             }
-            if((map[(height - recent.y) * width + recent.x - 1] == 'o' ||
-                map[(height - recent.y) * width + recent.x - 1] == 'x') && recent.air > 0
+            if(map[(height - recent.y) * width + recent.x - 1] == 'o' && recent.air > 0
                && !hasEscape)
             {
-                if(map[(height - recent.y) * width + recent.x - 1] != 'x')
-                    map[(height - recent.y) * width + recent.x - 1] = 'z';
+                map[(height - recent.y) * width + recent.x - 1] = 'z';
+                
                 myQ.push({recent.x, recent.y - 1, recent.air - 1});
                 myQ.push({recent.x, recent.y + 1, recent.air - 1});
                 myQ.push({recent.x + 1, recent.y, recent.air - 1});
