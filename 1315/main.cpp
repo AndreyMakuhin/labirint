@@ -1,11 +1,3 @@
-//
-//  main.cpp
-//  speleolog
-//
-//  Created by Андрей Макухин on 19.12.2018.
-//  Copyright © 2018 Андрей Макухин. All rights reserved.
-//
-
 #pragma comment(linker, "/STACK:67108864")
 
 #include <iostream>
@@ -21,28 +13,23 @@ struct cell
     int air;
 };
 
-
 int width;
 int height;
 int dist;
 bool hasEscape = false;
 
-cell upexit{-1, -1, -1};
-
 vector<char> map;
 queue<cell> myQ;
 
-void FindExit(cell start);
-void Flood();
+void Flood(cell in);
 void Escape(cell start);
 void CleanMap();
+void CleanQueue();
 
 int main() {
 #ifndef ONLINE_JUDGE
     freopen("input.txt", "rt", stdin);
-    //freopen("output.txt", "wt", stdout);
 #endif
-    
     
     int x;
     int y;
@@ -56,24 +43,27 @@ int main() {
         map.push_back(inp);
     }
     
-    FindExit({x, y, dist});
-    Flood();
-    
-    //map[(height - y) * width + x - 1] = 'i';
-    //map[(height - upexit.y) * width + upexit.x - 1] = 'v';
+    for (int i = 0; i < width; i++)
+    {
+        if(map[i] == '.')
+        {
+            Flood({i + 1, height, -1});
+        }
+    }
     
     ///////дебажный вывод
-            /*printf("%d %d %d %d %d\n", width, height, x, y, dist);
-    
-            for(int i = 0; i < width*height; i++)
-            {
-                cout << map[i];
-                if((i + 1) % width == 0)
-                {
-                    cout << "\n";
-                }
-            }
+    /*
+    printf("%d %d %d %d %d\n", width, height, x, y, dist);
+
+    for(int i = 0; i < width*height; i++)
+    {
+        cout << map[i];
+        if((i + 1) % width == 0)
+        {
             cout << "\n";
+        }
+    }
+    cout << "\n";
     */
     ////////////
     
@@ -87,32 +77,14 @@ int main() {
     return 0;
 }
 
-void FindExit(cell start)
+void Flood( cell in)
 {
-    if(start.y > height )
-    {
-        upexit = {start.x, start.y - 1, dist};
-    }
-    
-    if(map[(height - start.y) * width + start.x - 1] == '.' )
-    {
-        map[(height - start.y) * width + start.x - 1] = '-';
-        FindExit({start.x + 1, start.y, -1});
-        FindExit({start.x - 1, start.y, -1});
-        FindExit({start.x, start.y + 1, -1});
-        FindExit({start.x, start.y - 1, -1});
-    }
-}
-
-void Flood()
-{
-    myQ.push(upexit);
+    myQ.push(in);
     
     while(!myQ.empty())
     {
         cell recent = myQ.front();
-        if(map[(height - recent.y) * width + recent.x - 1] == '-' ||
-           map[(height - recent.y) * width + recent.x - 1] == '.')
+        if(map[(height - recent.y) * width + recent.x - 1] == '.')
         {
             map[(height - recent.y) * width + recent.x - 1] = 'o';
             
@@ -131,35 +103,47 @@ void Escape(cell start)
     {
         myQ.push(start);
         
+        vector<cell> pockets;
+        
         while(!myQ.empty() && !hasEscape)
         {
             cell recent = myQ.front();
+            char& inCell = map[(height - recent.y) * width + recent.x - 1];
+            if(recent.air == dist)
+                CleanMap();
             
             if(recent.y > height)
             {
                 hasEscape = true;
                 break;
             }
-            if((map[(height - recent.y) * width + recent.x - 1] == '-' ||
-               map[(height - recent.y) * width + recent.x - 1] == '.') && !hasEscape)
+            if(inCell == '.' && !hasEscape)
             {
-                map[(height - recent.y) * width + recent.x - 1] = 'z';
-                CleanMap();
-                recent.air = dist;
-                Escape(recent);
-                break;
+                inCell = 'z';
+                pockets.push_back({recent.x, recent.y, dist});
             }
-            if(map[(height - recent.y) * width + recent.x - 1] == 'o' && recent.air > 0
-               && !hasEscape)
+            if(inCell == 'o' && recent.air > 0 && !hasEscape)
             {
-                map[(height - recent.y) * width + recent.x - 1] = 'z';
+                inCell = 'z';
                 
-                myQ.push({recent.x, recent.y - 1, recent.air - 1});
+                if(recent.y > 1)
+                    myQ.push({recent.x, recent.y - 1, recent.air - 1});
                 myQ.push({recent.x, recent.y + 1, recent.air - 1});
-                myQ.push({recent.x + 1, recent.y, recent.air - 1});
-                myQ.push({recent.x - 1, recent.y, recent.air - 1});
+                if(recent.x < width)
+                    myQ.push({recent.x + 1, recent.y, recent.air - 1});
+                if(recent.x > 1)
+                    myQ.push({recent.x - 1, recent.y, recent.air - 1});
             }
             myQ.pop();
+            
+            if(myQ.empty() && !pockets.empty())
+            {
+                for(cell c : pockets)
+                {
+                    myQ.push(c);
+                }
+                pockets.clear();
+            }
         }
     }
     
@@ -176,7 +160,10 @@ void CleanMap()
                map[i] = 'o';
            }
     }
-    
+}
+
+void CleanQueue()
+{
     while(myQ.size() > 0)
     {
         myQ.pop();
